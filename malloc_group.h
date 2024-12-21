@@ -13,8 +13,8 @@
  * 
  * 	// Allocate whatever you need.
  * 	int *i = mg_malloc(mg, sizeof(int));
- * 	int *f = mg_malloc(mg, sizeof(float));
- * 	int *str = mg_malloc(mg, sizeof(char) * 81);
+ * 	float *f = mg_malloc(mg, sizeof(float));
+ * 	char *str = mg_malloc(mg, sizeof(char) * 81);
  * 
  * 	mg_free(mg); // Everything gets freed here.
  * }
@@ -53,19 +53,20 @@
 			node->data_size = size;
 			node->next = mg->head;
 			node->prev = NULL;
-			node->next->prev = node;
+			if (node->next != NULL) node->next->prev = node;
 			mg->head = node;
 			return &node->data;
 		}
 
 		void *mg_realloc(malloc_group_t *mg, void *ptr, size_t size) {
+			if (ptr == NULL) return mg_malloc(mg, size);
 			malloc_node_t *old_node = ((malloc_node_t*) ptr)-1;
-			malloc_node_t new_node = realloc(old_node, sizeof(malloc_node_t) + size);
+			malloc_node_t *new_node = realloc(old_node, sizeof(malloc_node_t) + size);
 			assert(new_node != NULL);
 			if (new_node->prev != NULL) new_node->prev->next = new_node;
 			if (new_node->next != NULL) new_node->next->prev = new_node;
 			if (mg->head == old_node) mg->head = new_node;
-			new_node->size = size;
+			new_node->data_size = size;
 			return &new_node->data;
 		}
 
